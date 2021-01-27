@@ -1,6 +1,138 @@
 from peewee import *
 
-db = SqliteDatabase('alumnosCursos.db')
+
+def menu():
+    print("*" * 20)
+    print("- Menú Principa -")
+    print("[1] - Alumnos")
+    print("[2] - Cursos")
+    print("[3] - AlumnosCursos")
+    print("[0] - Salir")
+    print("*" * 20)
+    opc = int(input("Elige una opcion:\n"))
+    return opc
+
+
+def menuAlumnosCursos():
+    print("*" * 20)
+    print("- Menú AlumnosCursos -")
+    print("[1] - Alta")
+    print("[2] - Baja")
+    print("[3] - Modificar")
+    print("[4] - Buscar")
+    print("[5] - Mostrar Todo")
+    print("[0] - Salir")
+    print("*" * 20)
+    opc = int(input("Elige una opcion:\n"))
+    return opc
+
+
+def menuAlumnos():
+    print("*" * 20)
+    print("- Menú Alumno -")
+    print("[1] - Alta")
+    print("[2] - Baja")
+    print("[3] - Modificar")
+    print("[4] - Buscar")
+    print("[5] - Mostrar Todo")
+    print("[0] - Salir")
+    print("*" * 20)
+    opc = int(input("Elige una opcion:\n"))
+    return opc
+
+
+def menuCurso():
+    print("*" * 20)
+    print("- Menú Agenda -")
+    print("[1] - Alta")
+    print("[2] - Baja")
+    print("[3] - Modificar")
+    print("[4] - Buscar")
+    print("[5] - Mostrar Todo")
+    print("[0] - Salir")
+    print("*" * 20)
+    opc = int(input("Elige una opcion:\n"))
+    return opc
+
+
+def continuar():
+    print("*" * 20)
+    print("Quieres continuar?")
+    print("[1] - Seguir")
+    print("[0] - Salir")
+    print("*" * 20)
+    opc = int(input("Elige una opcion:\n"))
+    return opc
+
+
+def altaAlumno():
+    exp = int(input("Introduce el expediente\n"))
+    nombre = input("Introduce nombre\n")
+    apellido = input("Introduce apellido\n")
+    telefono = input("Introduce telefono\n")
+    edad = int(input("Introduce edad\n"))
+    alumno = Alumno(numExp=exp, nombre=nombre, apellido=apellido, telefono=telefono, edad=edad)
+    alumno.save()
+
+
+def altaCurso():
+    pass
+
+
+def altaAlumnoCurso():
+    pass
+
+
+def bajaAlumno():
+    pass
+
+
+def bajaCurso():
+    pass
+
+
+def bajaAlumnoCurso():
+    pass
+
+
+def modificarAlumno():
+    pass
+
+
+def modificarCurso():
+    pass
+
+
+def modificarAlumnoCurso():
+    pass
+
+
+def buscarAlumno():
+    pass
+
+
+def buscarCurso():
+    pass
+
+
+def buscarAlumnoCurso():
+    pass
+
+
+def mostrarAlumno():
+    pass
+
+
+def mostrarCurso():
+    pass
+
+
+def mostrarAlumnoCurso():
+    pass
+
+
+db = MySQLDatabase('alumnoCurso', user='root', password='',
+                   host='localhost', port=3306)
 
 
 # Alumno
@@ -36,3 +168,37 @@ class AlumnoCurso(Model):
 
 db.connect()
 db.create_tables([Alumno, Curso, AlumnoCurso])
+print("Empezamos")
+salir = False
+
+while not salir:
+    opcion = menu()
+    if opcion == 1:
+        salirA = False
+        while not salirA:
+            opcionA = menuAlumnos()
+            if opcionA == 1:
+                altaAlumno()
+            elif opcionA == 2:
+                bajaAlumno()
+            elif opcionA == 3:
+                modificarAlumno()
+            elif opcionA == 4:
+                buscarAlumno()
+            elif opcionA == 5:
+                mostrarAlumno()
+            elif opcionA == 0:
+                salirA = True
+            else:
+                print("Elige un numero entre 0 y 5")
+    elif opcion == 2:
+        menuCurso()
+    elif opcion == 3:
+        menuAlumnosCursos()
+    elif opcion == 0:
+        print("SALIMOS")
+        salir = True
+        db.close()
+    else:
+        print("Introduce un numero entre 0 y 3")
+print("FIN")
