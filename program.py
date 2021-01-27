@@ -137,7 +137,7 @@ db = MySQLDatabase('alumnoCurso', user='root', password='',
 
 # Alumno
 class Alumno(Model):
-    numeroExp = IntegerField()
+    numeroExp = PrimaryKeyField()
     nombre = CharField()
     apellido = CharField()
     telefono = CharField()
@@ -149,7 +149,7 @@ class Alumno(Model):
 
 # Curso
 class Curso(Model):
-    codigoCurso = IntegerField()
+    codigoCurso = PrimaryKeyField()
     nombre = CharField()
     descripcion = CharField()
 
