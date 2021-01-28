@@ -3,7 +3,7 @@ from peewee import *
 
 def menu():
     print("*" * 20)
-    print("- Menú Principa -")
+    print("- Menú Principal -")
     print("[1] - Alumnos")
     print("[2] - Cursos")
     print("[3] - AlumnosCursos")
@@ -15,12 +15,12 @@ def menu():
 
 def menuAlumnosCursos():
     print("*" * 20)
-    print("- Menú AlumnosCursos -")
-    print("[1] - Alta")
+    print("- Menú Inscripciones -")
+    print("[1] - Alta inscripcion")
     print("[2] - Baja")
-    print("[3] - Modificar")
-    print("[4] - Buscar")
-    print("[5] - Mostrar Todo")
+    print("[3] - Modificar inscripcion")
+    print("[4] - Buscar inscripcion")
+    print("[5] - Mostrar inscripciones")
     print("[0] - Salir")
     print("*" * 20)
     opc = int(input("Elige una opcion:\n"))
@@ -30,11 +30,11 @@ def menuAlumnosCursos():
 def menuAlumnos():
     print("*" * 20)
     print("- Menú Alumno -")
-    print("[1] - Alta")
-    print("[2] - Baja")
-    print("[3] - Modificar")
-    print("[4] - Buscar")
-    print("[5] - Mostrar Todo")
+    print("[1] - Alta Alumno")
+    print("[2] - Baja Alumno")
+    print("[3] - Modificar Alumno")
+    print("[4] - Buscar Alumno")
+    print("[5] - Mostrar Alumnos")
     print("[0] - Salir")
     print("*" * 20)
     opc = int(input("Elige una opcion:\n"))
@@ -43,12 +43,12 @@ def menuAlumnos():
 
 def menuCurso():
     print("*" * 20)
-    print("- Menú Agenda -")
-    print("[1] - Alta")
-    print("[2] - Baja")
-    print("[3] - Modificar")
-    print("[4] - Buscar")
-    print("[5] - Mostrar Todo")
+    print("- Menú Curso -")
+    print("[1] - Alta Curso")
+    print("[2] - Baja Curso")
+    print("[3] - Modificar Curso")
+    print("[4] - Buscar Curso")
+    print("[5] - Mostrar Cursos")
     print("[0] - Salir")
     print("*" * 20)
     opc = int(input("Elige una opcion:\n"))
@@ -76,7 +76,11 @@ def altaAlumno():
 
 
 def altaCurso():
-    pass
+    cod = int(input("Introduce el codigo del curso\n"))
+    nomCurso = input("Introduce el nombre del curso\n")
+    descripcion = input("Introduce la descripcion del curso\n")
+    curso = Curso.create(codigoCurso=cod, nombre=nomCurso, descripcion=descripcion)
+    curso.save()
 
 
 def altaAlumnoCurso():
@@ -133,7 +137,6 @@ def mostrarAlumnoCurso():
 
 db = MySQLDatabase('alumnoCurso', user='root', password='',
                    host='localhost', port=3306)
-
 
 # Alumno
 class Alumno(Model):
@@ -192,9 +195,41 @@ while not salir:
             else:
                 print("Elige un numero entre 0 y 5")
     elif opcion == 2:
-        menuCurso()
+        salirC = False
+        while not salirC:
+            opcionC = menuCurso()
+            if opcionC == 1:
+                altaCurso()
+            elif opcionC == 2:
+                bajaCurso()
+            elif opcionC == 3:
+                modificarCurso()
+            elif opcionC == 4:
+                buscarCurso()
+            elif opcionC == 5:
+                mostrarCurso()
+            elif opcionC == 0:
+                salirC = True
+            else:
+                print("Elige un numero entre 0 y 5")
     elif opcion == 3:
-        menuAlumnosCursos()
+        salirAc = False
+        while not salirAc:
+            opcionAc = menuAlumnosCursos()
+            if opcionAc == 1:
+                altaAlumnoCurso()
+            elif opcionAc == 2:
+                bajaAlumnoCurso()
+            elif opcionAc == 3:
+                menuAlumnosCursos()
+            elif opcionAc == 4:
+                buscarAlumnoCurso()
+            elif opcionAc == 5:
+                mostrarAlumnoCurso()
+            elif opcionAc == 0:
+                salirAc = True
+            else:
+                print("Elige un numero entre 0 y 5")
     elif opcion == 0:
         print("SALIMOS")
         salir = True
