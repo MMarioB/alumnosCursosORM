@@ -66,25 +66,49 @@ def continuar():
 
 
 def altaAlumno():
-    exp = int(input("Introduce el expediente\n"))
     nombre = input("Introduce nombre\n")
     apellido = input("Introduce apellido\n")
     telefono = input("Introduce telefono\n")
     edad = int(input("Introduce edad\n"))
-    alumno = Alumno(numExp=exp, nombre=nombre, apellido=apellido, telefono=telefono, edad=edad)
+    alumno = Alumno(nombre=nombre, apellido=apellido, telefono=telefono, edad=edad)
     alumno.save()
+
+    print("Quieres matricular al alumno en algun curso?\n")
+    respuesta = input("Si/No")
+    if respuesta == "Si" or respuesta == "si":
+        altaAlumnoCurso(alumno.numeroExp)
 
 
 def altaCurso():
-    cod = int(input("Introduce el codigo del curso\n"))
     nomCurso = input("Introduce el nombre del curso\n")
     descripcion = input("Introduce la descripcion del curso\n")
-    curso = Curso.create(codigoCurso=cod, nombre=nomCurso, descripcion=descripcion)
+    curso = Curso.create(nombre=nomCurso, descripcion=descripcion)
     curso.save()
 
 
-def altaAlumnoCurso():
-    pass
+def altaAlumnoCurso(exp):
+    listaCursos = []
+    for curso in Curso.select():
+        print("**************************************")
+        print("--Cursos Disponibles --")
+        print("- Codigo:", curso.codigoCurso)
+        print("- Nombre:", curso.nombre)
+        print("- Descripcion:", curso.descripcion)
+        print("**************************************")
+        codigo = curso.codigoCurso
+        listaCursos.append(codigo)
+
+    if not listaCursos:
+        print("No existen cursos, no puedes matricular al alumno\n")
+    else:
+        cod = int(input("Introduce el codigo del curso en el que quieres matricular al alumno"))
+        for c in listaCursos:
+            if cod == c:
+                print("Curso encontrado")
+                matriculado = AlumnoCurso.create(numExp=exp, codCurso=cod)
+                matriculado.save()
+            else:
+                print("Curso no encontrado")
 
 
 def bajaAlumno():
@@ -138,6 +162,7 @@ def mostrarAlumnoCurso():
 db = MySQLDatabase('alumnoCurso', user='root', password='',
                    host='localhost', port=3306)
 
+
 # Alumno
 class Alumno(Model):
     numeroExp = PrimaryKeyField()
@@ -162,8 +187,8 @@ class Curso(Model):
 
 # AlumnosCursos
 class AlumnoCurso(Model):
-    numExp = ForeignKeyField(Alumno, backref='curso')
-    codCurso = ForeignKeyField(Curso, backref='alumno')
+    numExp = ForeignKeyField(Alumno, backref='alumno')
+    codCurso = ForeignKeyField(Curso, backref='curso')
 
     class Meta:
         database = db  # This model uses the "alumnosCursos.db" database.
