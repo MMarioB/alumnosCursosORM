@@ -1,4 +1,6 @@
 from peewee import *
+import configparser
+import pymysql
 
 
 def menu():
@@ -97,18 +99,23 @@ def altaAlumnoCurso(exp):
         print("**************************************")
         codigo = curso.codigoCurso
         listaCursos.append(codigo)
-
-    if not listaCursos:
-        print("No existen cursos, no puedes matricular al alumno\n")
-    else:
-        cod = int(input("Introduce el codigo del curso en el que quieres matricular al alumno"))
-        for c in listaCursos:
-            if cod == c:
-                print("Curso encontrado")
-                matriculado = AlumnoCurso.create(numExp=exp, codCurso=cod)
-                matriculado.save()
-            else:
-                print("Curso no encontrado")
+    print(listaCursos)
+    salir = False
+    while not salir:
+        if not listaCursos:
+            print("No existen cursos, no puedes matricular al alumno\n")
+            break
+        else:
+            cod = int(input("Introduce el codigo del curso en el que quieres matricular al alumno"))
+            for c in listaCursos:
+                if cod == c:
+                    print("Curso encontrado")
+                    matriculado = AlumnoCurso.create(numExp=exp, codCurso=cod)
+                    matriculado.save()
+                    salir = True
+                    break
+                else:
+                    print("Curso no encontrado. No ha sido posible matricular al alumno")
 
 
 def bajaAlumno():
@@ -148,19 +155,55 @@ def buscarAlumnoCurso():
 
 
 def mostrarAlumno():
-    pass
+    for alumno in Alumno.select():
+        print("**************************************")
+        print("-- Alumnos --")
+        print("- Expediente:", alumno.numeroExp)
+        print("- Nombre:", alumno.nombre)
+        print("- Apellido:", alumno.apellido)
+        print("- Telefono:", alumno.telefono)
+        print("- Edad:", alumno.edad)
+        print("**************************************")
 
 
 def mostrarCurso():
-    pass
+    for curso in Curso.select():
+        print("**************************************")
+        print("--Cursos Disponibles --")
+        print("- Codigo:", curso.codigoCurso)
+        print("- Nombre:", curso.nombre)
+        print("- Descripcion:", curso.descripcion)
+        print("**************************************")
 
 
 def mostrarAlumnoCurso():
     pass
 
 
-db = MySQLDatabase('alumnoCurso', user='root', password='',
-                   host='localhost', port=3306)
+# fichero configuracion
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+database_name = config['DEFAULT']['DB_NAME']
+database_user = config['DEFAULT']['DB_USER']
+database_host = config['DEFAULT']['DB_HOST']
+database_port = config['DEFAULT']['DB_PORT']
+database_password = config['DEFAULT']['DB_PASSWORD']
+
+# creamos base de datos en phpmyadmin con pymysql
+try:
+    conexion = pymysql.connect(host=database_host,
+                               user=database_user,
+                               password=database_password)
+    conexion.cursor().execute("CREATE DATABASE IF NOT EXISTS alumnoCurso;")
+    print("Conexión correcta")
+
+except (pymysql.err.OperationalError, pymysql.err.InternalError) as e:
+    print("Ocurrió un error al conectar: ", e)
+
+# conectamos con la base de datos a traves de peewee
+db = MySQLDatabase(database_name, user=database_user, password=database_password,
+                   host=database_host, port=int(database_port))
 
 
 # Alumno
