@@ -18,11 +18,10 @@ def menu():
 def menuAlumnosCursos():
     print("*" * 20)
     print("- Menú Inscripciones -")
-    print("[1] - Alta inscripcion")
-    print("[2] - Baja")
-    print("[3] - Modificar inscripcion")
-    print("[4] - Buscar inscripcion")
-    print("[5] - Mostrar inscripciones")
+    print("[1] - Baja inscripcion")
+    print("[2] - Modificar inscripcion")
+    print("[3] - Buscar inscripcion")
+    print("[4] - Mostrar inscripciones")
     print("[0] - Salir")
     print("*" * 20)
     opc = int(input("Elige una opcion:\n"))
@@ -177,7 +176,12 @@ def mostrarCurso():
 
 
 def mostrarAlumnoCurso():
-    pass
+    """
+    SELECT * FROM alumno LEFT OUTER JOIN alumnocurso ON alumnocurso.numExp_id = alumno.numeroExp LEFT OUTER JOIN curso ON alumnocurso.codCurso_id = curso.codigoCurso
+    """
+    # Esto me saca los alumnos que estan matriculados
+    for row in Alumno.select().join(AlumnoCurso).join(Curso).dicts():
+        print(row)
 
 
 # fichero configuracion
@@ -285,19 +289,17 @@ while not salir:
         while not salirAc:
             opcionAc = menuAlumnosCursos()
             if opcionAc == 1:
-                altaAlumnoCurso()
-            elif opcionAc == 2:
                 bajaAlumnoCurso()
-            elif opcionAc == 3:
+            elif opcionAc == 2:
                 menuAlumnosCursos()
-            elif opcionAc == 4:
+            elif opcionAc == 3:
                 buscarAlumnoCurso()
-            elif opcionAc == 5:
+            elif opcionAc == 4:
                 mostrarAlumnoCurso()
             elif opcionAc == 0:
                 salirAc = True
             else:
-                print("Elige un numero entre 0 y 5")
+                print("Elige un numero entre 0 y 4")
     elif opcion == 0:
         print("SALIMOS")
         salir = True
