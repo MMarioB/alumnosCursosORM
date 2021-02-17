@@ -180,8 +180,14 @@ def mostrarAlumnoCurso():
     SELECT * FROM alumno LEFT OUTER JOIN alumnocurso ON alumnocurso.numExp_id = alumno.numeroExp LEFT OUTER JOIN curso ON alumnocurso.codCurso_id = curso.codigoCurso
     """
     # Esto me saca los alumnos que estan matriculados
-    for row in Alumno.select().join(AlumnoCurso).join(Curso).dicts():
-        print(row)
+    query = (Alumno
+             .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre, Curso.descripcion)
+             .join(AlumnoCurso)
+             .join(Curso)
+             .tuples()  # <-- since you just need the metric id and patient id
+             )
+    for alumno in query:
+        print(alumno)
 
 
 # fichero configuracion
