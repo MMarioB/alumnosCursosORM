@@ -8,7 +8,7 @@ def menu():
     print("- Menú Principal -")
     print("[1] - Alumnos")
     print("[2] - Cursos")
-    print("[3] - AlumnosCursos")
+    print("[3] - Inscripciones")
     print("[0] - Salir")
     print("*" * 20)
     opc = int(input("Elige una opcion:\n"))
@@ -19,9 +19,8 @@ def menuAlumnosCursos():
     print("*" * 20)
     print("- Menú Inscripciones -")
     print("[1] - Baja inscripcion")
-    print("[2] - Modificar inscripcion")
-    print("[3] - Buscar inscripcion")
-    print("[4] - Mostrar inscripciones")
+    print("[2] - Buscar inscripcion")
+    print("[3] - Mostrar inscripciones")
     print("[0] - Salir")
     print("*" * 20)
     opc = int(input("Elige una opcion:\n"))
@@ -78,6 +77,8 @@ def altaAlumno():
     respuesta = input("Si/No")
     if respuesta == "Si" or respuesta == "si":
         altaAlumnoCurso(alumno.numeroExp)
+    else:
+        print("Salimos")
 
 
 def altaCurso():
@@ -118,31 +119,68 @@ def altaAlumnoCurso(exp):
 
 
 def bajaAlumno():
-    pass
+    mostrarAlumno()
+    numexp = int(input("Introduce el numero de expediente del alumno que quieres borrar"))
+    AlumnoCurso.delete().where(AlumnoCurso.numExp == numexp).execute()
+    Alumno.delete().where(Alumno.numeroExp == numexp).execute()
 
 
 def bajaCurso():
-    pass
+    mostrarCurso()
+    codcur = int(input("Introduce el codigo del curso que quieres borrar"))
+    AlumnoCurso.delete().where(AlumnoCurso.codCurso == codcur).execute()
+    Curso.delete().where(Curso.codigoCurso == codcur).execute()
 
 
 def bajaAlumnoCurso():
-    pass
+    mostrarAlumnoCurso()
+    numexp = int(input("Introduce el numero de expediente del alumno que quieres borrar"))
+    AlumnoCurso.delete().where(AlumnoCurso.numExp == numexp).execute()
 
 
 def modificarAlumno():
-    pass
+    numexp = int(input("Introduce el numero de expediente del alumno que quieres modificar"))
+    alumnomod = Alumno.select().where(Alumno.numeroExp == numexp).get()
+    nombre_ = input("Introduce el nombre modificado")
+    apellido_ = input("Introduce el apellido modificado")
+    telefono_ = input("Introduce el telefono modificado")
+    edad_ = input("Introduce la edad modificada")
+    alumnomod.nombre = nombre_
+    alumnomod.apellido = apellido_
+    alumnomod.telefono = telefono_
+    alumnomod.edad = edad_
+    alumnomod.save()
 
 
 def modificarCurso():
-    pass
-
-
-def modificarAlumnoCurso():
-    pass
+    codcur = int(input("Introduce el codigo del curso que quieres modificar"))
+    cursomod = Curso.select().where(Curso.codigoCurso == codcur).get()
+    nombre_ = input("Introduce el nombre modificado del curso")
+    descripcion_ = input("Introduce la descripcion modificada del curso")
+    cursomod.nombre = nombre_
+    cursomod.descripcion = descripcion_
+    cursomod.save()
 
 
 def buscarAlumno():
-    pass
+    listaAlumnos = []
+    for alumno in Alumno.select():
+        codigo = alumno.numeroExp
+        listaAlumnos.append(codigo)
+    print("Expedientes:",listaAlumnos)
+    numexp = int(input("Introduce el numero de expediente del alumno que quieres buscar"))
+    if numexp not in listaAlumnos:
+        print("No se ha encontrado ningun alumno con ese numero de expediente")
+    else:
+        alumnobus = Alumno.select().where(Alumno.numeroExp == numexp).get()
+        print("**************************************")
+        print("Expediente: " + str(alumnobus.numeroExp))
+        print("Nombre: " + alumnobus.nombre)
+        print("Apellido: " + alumnobus.apellido)
+        print("Telefono: " + alumnobus.telefono)
+        print("Edad: " + str(alumnobus.edad))
+        print("**************************************")
+
 
 
 def buscarCurso():
@@ -181,10 +219,10 @@ def mostrarAlumnoCurso():
     """
     # Esto me saca los alumnos que estan matriculados
     query = (Alumno
-             .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre, Curso.descripcion)
+             .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre)
              .join(AlumnoCurso)
              .join(Curso)
-             .tuples()  # <-- since you just need the metric id and patient id
+             .tuples()
              )
     for alumno in query:
         print(alumno)
@@ -218,7 +256,7 @@ db = MySQLDatabase(database_name, user=database_user, password=database_password
 
 # Alumno
 class Alumno(Model):
-    numeroExp = PrimaryKeyField()
+    numeroExp = AutoField()
     nombre = CharField()
     apellido = CharField()
     telefono = CharField()
@@ -230,7 +268,7 @@ class Alumno(Model):
 
 # Curso
 class Curso(Model):
-    codigoCurso = PrimaryKeyField()
+    codigoCurso = AutoField()
     nombre = CharField()
     descripcion = CharField()
 
@@ -240,8 +278,8 @@ class Curso(Model):
 
 # AlumnosCursos
 class AlumnoCurso(Model):
-    numExp = ForeignKeyField(Alumno, backref='alumno')
-    codCurso = ForeignKeyField(Curso, backref='curso')
+    numExp = ForeignKeyField(Alumno)
+    codCurso = ForeignKeyField(Curso)
 
     class Meta:
         database = db  # This model uses the "alumnosCursos.db" database.
@@ -297,15 +335,13 @@ while not salir:
             if opcionAc == 1:
                 bajaAlumnoCurso()
             elif opcionAc == 2:
-                menuAlumnosCursos()
-            elif opcionAc == 3:
                 buscarAlumnoCurso()
-            elif opcionAc == 4:
+            elif opcionAc == 3:
                 mostrarAlumnoCurso()
             elif opcionAc == 0:
                 salirAc = True
             else:
-                print("Elige un numero entre 0 y 4")
+                print("Elige un numero entre 0 y 3")
     elif opcion == 0:
         print("SALIMOS")
         salir = True
