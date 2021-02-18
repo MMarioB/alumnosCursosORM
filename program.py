@@ -167,7 +167,7 @@ def buscarAlumno():
     for alumno in Alumno.select():
         codigo = alumno.numeroExp
         listaAlumnos.append(codigo)
-    print("Expedientes:",listaAlumnos)
+    print("Expedientes:", listaAlumnos)
     numexp = int(input("Introduce el numero de expediente del alumno que quieres buscar"))
     if numexp not in listaAlumnos:
         print("No se ha encontrado ningun alumno con ese numero de expediente")
@@ -182,13 +182,43 @@ def buscarAlumno():
         print("**************************************")
 
 
-
 def buscarCurso():
-    pass
+    listaCursos = []
+    for curso in Curso.select():
+        codigo = curso.codigoCurso
+        listaCursos.append(codigo)
+    print("Expedientes:", listaCursos)
+    codcur = int(input("Introduce el codigo del curso que quieres buscar"))
+    if codcur not in listaCursos:
+        print("No se ha encontrado ningun curso con ese codigo")
+    else:
+        codigobus = Curso.select().where(Curso.codigoCurso == codcur).get()
+        print("**************************************")
+        print("Codigo: " + str(codigobus.codigoCurso))
+        print("Nombre: " + codigobus.nombre)
+        print("Descripcion: " + codigobus.descripcion)
+        print("**************************************")
 
 
 def buscarAlumnoCurso():
-    pass
+    listaAlumnos = []
+    for alumno in Alumno.select():
+        codigo = alumno.numeroExp
+        listaAlumnos.append(codigo)
+    print("Expedientes:", listaAlumnos)
+    numexp = int(input("Introduce el numero de expediente del alumno que quieres buscar"))
+    if numexp not in listaAlumnos:
+        print("No se ha encontrado ningun alumno con ese numero de expediente")
+    else:
+        query = (Alumno
+                 .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre)
+                 .join(AlumnoCurso)
+                 .join(Curso)
+                 .where(Alumno.numeroExp == numexp)
+                 .tuples()
+                 )
+        for alumno in query:
+            print(alumno)
 
 
 def mostrarAlumno():
