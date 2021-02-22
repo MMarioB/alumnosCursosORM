@@ -3,6 +3,16 @@ import configparser
 import pymysql
 
 
+def lee_entero():
+    while True:
+        entrada = input("->")
+        try:
+            entrada = int(entrada)
+            return entrada
+        except ValueError:
+            print("Error!! Has introducido algo que no es un numero")
+
+
 def menu():
     print("*" * 20)
     print("- Menú Principal -")
@@ -11,7 +21,7 @@ def menu():
     print("[3] - Inscripciones")
     print("[0] - Salir")
     print("*" * 20)
-    opc = int(input("Elige una opcion:\n"))
+    opc = lee_entero()
     return opc
 
 
@@ -23,7 +33,7 @@ def menuAlumnosCursos():
     print("[3] - Mostrar inscripciones")
     print("[0] - Salir")
     print("*" * 20)
-    opc = int(input("Elige una opcion:\n"))
+    opc = lee_entero()
     return opc
 
 
@@ -37,7 +47,7 @@ def menuAlumnos():
     print("[5] - Mostrar Alumnos")
     print("[0] - Salir")
     print("*" * 20)
-    opc = int(input("Elige una opcion:\n"))
+    opc = lee_entero()
     return opc
 
 
@@ -51,7 +61,7 @@ def menuCurso():
     print("[5] - Mostrar Cursos")
     print("[0] - Salir")
     print("*" * 20)
-    opc = int(input("Elige una opcion:\n"))
+    opc = lee_entero()
     return opc
 
 
@@ -61,20 +71,55 @@ def continuar():
     print("[1] - Seguir")
     print("[0] - Salir")
     print("*" * 20)
-    opc = int(input("Elige una opcion:\n"))
-    return opc
+    opc = lee_entero()
+    while True:
+        if opc == 0:
+            return opc
+        elif opc == 1:
+            return opc
+        else:
+            print("Opcion incorrecta")
+            opc = lee_entero()
+
+
+def validarEdad():
+    while True:
+        entrada = input("Introduce una edad\n ")
+        try:
+            entrada = int(entrada)
+            return entrada
+        except ValueError:
+            print("Error!! Has introducido algo que no es una edad")
 
 
 def altaAlumno():
-    nombre = input("Introduce nombre\n")
-    apellido = input("Introduce apellido\n")
-    telefono = input("Introduce telefono\n")
-    edad = int(input("Introduce edad\n"))
+    nombre = input("Introduce el nombre\n")
+    while True:
+        if not nombre:
+            print("Cadena vacia")
+            nombre = input("Introduce el nombre\n")
+        else:
+            break
+    apellido = input("Introduce el apellido\n")
+    while True:
+        if not apellido:
+            print("Cadena vacia")
+            apellido = input("Introduce el apellido\n")
+        else:
+            break
+    telefono = input("Introduce el telefono\n")
+    while True:
+        if telefono.isdigit():
+            break
+        else:
+            telefono = input("Introduce el telefono de nuevo\n")
+    edad = validarEdad()
     alumno = Alumno(nombre=nombre, apellido=apellido, telefono=telefono, edad=edad)
     alumno.save()
 
     print("Quieres matricular al alumno en algun curso?\n")
-    respuesta = input("Si/No")
+    respuesta = input(
+        "Introduce si para matricularlo. (cualquier cosa que sea distinta de si no matriculará al alumno)")
     if respuesta == "Si" or respuesta == "si":
         altaAlumnoCurso(alumno.numeroExp)
     else:
@@ -83,7 +128,19 @@ def altaAlumno():
 
 def altaCurso():
     nomCurso = input("Introduce el nombre del curso\n")
+    while True:
+        if not nomCurso:
+            print("Cadena vacia")
+            nomCurso = input("Introduce el nombre del curso\n")
+        else:
+            break
     descripcion = input("Introduce la descripcion del curso\n")
+    while True:
+        if not descripcion:
+            print("Cadena vacia")
+            descripcion = input("Introduce la descripcion del curso\n")
+        else:
+            break
     curso = Curso.create(nombre=nomCurso, descripcion=descripcion)
     curso.save()
 
@@ -100,66 +157,151 @@ def altaAlumnoCurso(exp):
         codigo = curso.codigoCurso
         listaCursos.append(codigo)
     print(listaCursos)
-    salir = False
-    while not salir:
-        if not listaCursos:
-            print("No existen cursos, no puedes matricular al alumno\n")
-            break
+    if not listaCursos:
+        print("No existen cursos, no puedes matricular al alumno\n")
+    else:
+        print("Introduce el codigo del curso en el que quieres matricular al alumno")
+        cod = lee_entero()
+        query = (Alumno
+                 .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre)
+                 .join(AlumnoCurso)
+                 .join(Curso)
+                 .where(AlumnoCurso.codCurso == cod and AlumnoCurso.numExp == exp)
+                 .tuples()
+                 )
+        for alum in query:
+            print(alum)
+        if not query:
+            print("NO DEBERIA ENTRAR AQUI")
+            matriculado = AlumnoCurso.create(numExp=exp, codCurso=cod)
+            matriculado.save()
         else:
-            cod = int(input("Introduce el codigo del curso en el que quieres matricular al alumno"))
-            for c in listaCursos:
-                if cod == c:
-                    print("Curso encontrado")
-                    matriculado = AlumnoCurso.create(numExp=exp, codCurso=cod)
-                    matriculado.save()
-                    salir = True
-                    break
-                else:
-                    print("Curso no encontrado. No ha sido posible matricular al alumno")
+            print("Ya esta matriculado en ese curso")
+            # AlumnoCurso.delete().where(AlumnoCurso.numExp == exp and AlumnoCurso.codCurso == cod).execute()
 
 
 def bajaAlumno():
     mostrarAlumno()
-    numexp = int(input("Introduce el numero de expediente del alumno que quieres borrar"))
-    AlumnoCurso.delete().where(AlumnoCurso.numExp == numexp).execute()
-    Alumno.delete().where(Alumno.numeroExp == numexp).execute()
+    listaAlumnos = []
+    for alumno in Alumno.select():
+        codigo = alumno.numeroExp
+        listaAlumnos.append(codigo)
+    print("Expedientes:", listaAlumnos)
+    print("Introduce el numero de expediente del alumno que quieres buscar")
+    numexp = lee_entero()
+    if numexp not in listaAlumnos:
+        print("No se ha encontrado ningun alumno con ese numero de expediente")
+    else:
+        AlumnoCurso.delete().where(AlumnoCurso.numExp == numexp).execute()
+        Alumno.delete().where(Alumno.numeroExp == numexp).execute()
 
 
 def bajaCurso():
     mostrarCurso()
-    codcur = int(input("Introduce el codigo del curso que quieres borrar"))
-    AlumnoCurso.delete().where(AlumnoCurso.codCurso == codcur).execute()
-    Curso.delete().where(Curso.codigoCurso == codcur).execute()
+    listaCursos = []
+    for curso in Curso.select():
+        codigo = curso.codigoCurso
+        listaCursos.append(codigo)
+    print("Codigos:", listaCursos)
+    print("Introduce el numero de expediente del alumno que quieres buscar")
+    codcur = lee_entero()
+    if codcur not in listaCursos:
+        print("No se ha encontrado ningun alumno con ese numero de expediente")
+    else:
+        AlumnoCurso.delete().where(AlumnoCurso.codCurso == codcur).execute()
+        Curso.delete().where(Curso.codigoCurso == codcur).execute()
 
 
 def bajaAlumnoCurso():
     mostrarAlumnoCurso()
-    numexp = int(input("Introduce el numero de expediente del alumno que quieres borrar"))
-    AlumnoCurso.delete().where(AlumnoCurso.numExp == numexp).execute()
+    listaAlumnos = []
+    for alumno in Alumno.select():
+        codigo = alumno.numeroExp
+        listaAlumnos.append(codigo)
+    print("Expedientes:", listaAlumnos)
+    print("Introduce el numero de expediente del alumno que quieres buscar")
+    numexp = lee_entero()
+    if numexp not in listaAlumnos:
+        print("No se ha encontrado ningun alumno con ese numero de expediente")
+    else:
+        AlumnoCurso.delete().where(AlumnoCurso.numExp == numexp).execute()
 
 
 def modificarAlumno():
-    numexp = int(input("Introduce el numero de expediente del alumno que quieres modificar"))
-    alumnomod = Alumno.select().where(Alumno.numeroExp == numexp).get()
-    nombre_ = input("Introduce el nombre modificado")
-    apellido_ = input("Introduce el apellido modificado")
-    telefono_ = input("Introduce el telefono modificado")
-    edad_ = input("Introduce la edad modificada")
-    alumnomod.nombre = nombre_
-    alumnomod.apellido = apellido_
-    alumnomod.telefono = telefono_
-    alumnomod.edad = edad_
-    alumnomod.save()
+    listaAlumnos = []
+    for alumno in Alumno.select():
+        codigo = alumno.numeroExp
+        listaAlumnos.append(codigo)
+    print("Expedientes:", listaAlumnos)
+    print("Introduce el numero de expediente del alumno que quieres buscar")
+    numexp = lee_entero()
+    print("Quieres matricular al alumno en algun curso, o quieres modificar sus datos?\n")
+    respuesta = input(
+        "Introduce si para matricularlo. (cualquier cosa que sea distinta de si no matriculará al alumno)")
+    if respuesta == "Si" or respuesta == "si":
+        altaAlumnoCurso(numexp)
+    else:
+        if numexp not in listaAlumnos:
+            print("No se ha encontrado ningun alumno con ese numero de expediente")
+        else:
+            alumnomod = Alumno.select().where(Alumno.numeroExp == numexp).get()
+            nombre_ = input("Introduce el nombre\n")
+            while True:
+                if not nombre_:
+                    print("Cadena vacia")
+                    nombre_ = input("Introduce el nombre\n")
+                else:
+                    break
+            apellido_ = input("Introduce el apellido\n")
+            while True:
+                if not apellido_:
+                    print("Cadena vacia")
+                    apellido_ = input("Introduce el apellido\n")
+                else:
+                    break
+            telefono_ = input("Introduce el telefono\n")
+            while True:
+                if telefono_.isdigit():
+                    break
+                else:
+                    telefono_ = input("Introduce el telefono de nuevo\n")
+            edad_ = validarEdad()
+            alumnomod.nombre = nombre_
+            alumnomod.apellido = apellido_
+            alumnomod.telefono = telefono_
+            alumnomod.edad = edad_
+            alumnomod.save()
 
 
 def modificarCurso():
-    codcur = int(input("Introduce el codigo del curso que quieres modificar"))
-    cursomod = Curso.select().where(Curso.codigoCurso == codcur).get()
-    nombre_ = input("Introduce el nombre modificado del curso")
-    descripcion_ = input("Introduce la descripcion modificada del curso")
-    cursomod.nombre = nombre_
-    cursomod.descripcion = descripcion_
-    cursomod.save()
+    listaCursos = []
+    for curso in Curso.select():
+        codigo = curso.codigoCurso
+        listaCursos.append(codigo)
+    print("Expedientes:", listaCursos)
+    print("Introduce el codigo del curso que quieres modificar")
+    codcur = int(input("Introduce el numero de expediente del alumno que quieres buscar"))
+    if codcur not in listaCursos:
+        print("No se ha encontrado ningun curso con ese codigo")
+    else:
+        cursomod = Curso.select().where(Curso.codigoCurso == codcur).get()
+        nombre_ = input("Introduce el nombre del curso\n")
+        while True:
+            if not nombre_:
+                print("Cadena vacia")
+                nombre_ = input("Introduce el nombre del curso\n")
+            else:
+                break
+        descripcion_ = input("Introduce la descripcion del curso\n")
+        while True:
+            if not descripcion_:
+                print("Cadena vacia")
+                descripcion_ = input("Introduce la descripcion del curso\n")
+            else:
+                break
+        cursomod.nombre = nombre_
+        cursomod.descripcion = descripcion_
+        cursomod.save()
 
 
 def buscarAlumno():
@@ -168,7 +310,8 @@ def buscarAlumno():
         codigo = alumno.numeroExp
         listaAlumnos.append(codigo)
     print("Expedientes:", listaAlumnos)
-    numexp = int(input("Introduce el numero de expediente del alumno que quieres buscar"))
+    print("Introduce el numero de expediente del alumno que quieres buscar")
+    numexp = lee_entero()
     if numexp not in listaAlumnos:
         print("No se ha encontrado ningun alumno con ese numero de expediente")
     else:
@@ -206,7 +349,8 @@ def buscarAlumnoCurso():
         codigo = alumno.numeroExp
         listaAlumnos.append(codigo)
     print("Expedientes:", listaAlumnos)
-    numexp = int(input("Introduce el numero de expediente del alumno que quieres buscar"))
+    print("Introduce el numero de expediente del alumno que quieres buscar")
+    numexp = lee_entero()
     if numexp not in listaAlumnos:
         print("No se ha encontrado ningun alumno con ese numero de expediente")
     else:
@@ -230,6 +374,20 @@ def mostrarAlumno():
         print("- Apellido:", alumno.apellido)
         print("- Telefono:", alumno.telefono)
         print("- Edad:", alumno.edad)
+        print("- Cursos:")
+        codigoal = alumno.numeroExp
+        query = (Alumno
+                 .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre)
+                 .join(AlumnoCurso)
+                 .join(Curso)
+                 .where(Alumno.numeroExp == codigoal)
+                 .tuples()
+                 )
+        if not query:
+            print("  - " + "No esta matriculado en ningun curso")
+        else:
+            for al in query:
+                print("  - " + al[3])
         print("**************************************")
 
 
@@ -244,18 +402,27 @@ def mostrarCurso():
 
 
 def mostrarAlumnoCurso():
-    """
-    SELECT * FROM alumno LEFT OUTER JOIN alumnocurso ON alumnocurso.numExp_id = alumno.numeroExp LEFT OUTER JOIN curso ON alumnocurso.codCurso_id = curso.codigoCurso
-    """
-    # Esto me saca los alumnos que estan matriculados
-    query = (Alumno
-             .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre)
-             .join(AlumnoCurso)
-             .join(Curso)
-             .tuples()
-             )
-    for alumno in query:
-        print(alumno)
+    for curso in Curso.select():
+        print("**************************************")
+        print("--Cursos Disponibles --")
+        print("- Codigo:", curso.codigoCurso)
+        print("- Nombre:", curso.nombre)
+        print("- Descripcion:", curso.descripcion)
+        print("- Alumnos Matriculados:")
+        cursomostrar = curso.nombre
+        query = (Alumno
+                 .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre)
+                 .join(AlumnoCurso)
+                 .join(Curso)
+                 .where(Curso.nombre == cursomostrar)
+                 .tuples()
+                 )
+        if not query:
+            print("  - " + "No tiene alumnos matriculados")
+        else:
+            for alumno in query:
+                print("  - " + alumno[1], alumno[2])
+        print("**************************************")
 
 
 # fichero configuracion
@@ -328,12 +495,36 @@ while not salir:
             opcionA = menuAlumnos()
             if opcionA == 1:
                 altaAlumno()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        altaAlumno()
             elif opcionA == 2:
                 bajaAlumno()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        bajaAlumno()
             elif opcionA == 3:
                 modificarAlumno()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        modificarAlumno()
             elif opcionA == 4:
                 buscarAlumno()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        buscarAlumno()
             elif opcionA == 5:
                 mostrarAlumno()
             elif opcionA == 0:
@@ -346,12 +537,36 @@ while not salir:
             opcionC = menuCurso()
             if opcionC == 1:
                 altaCurso()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        altaCurso()
             elif opcionC == 2:
                 bajaCurso()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        bajaCurso()
             elif opcionC == 3:
                 modificarCurso()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        modificarCurso()
             elif opcionC == 4:
                 buscarCurso()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        buscarCurso()
             elif opcionC == 5:
                 mostrarCurso()
             elif opcionC == 0:
@@ -364,8 +579,20 @@ while not salir:
             opcionAc = menuAlumnosCursos()
             if opcionAc == 1:
                 bajaAlumnoCurso()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        bajaAlumnoCurso()
             elif opcionAc == 2:
                 buscarAlumnoCurso()
+                while True:
+                    op1 = continuar()
+                    if op1 == 0:
+                        break
+                    else:
+                        buscarAlumnoCurso()
             elif opcionAc == 3:
                 mostrarAlumnoCurso()
             elif opcionAc == 0:
