@@ -187,11 +187,12 @@ def bajaAlumno():
         codigo = alumno.numeroExp
         listaAlumnos.append(codigo)
     print("Expedientes:", listaAlumnos)
-    print("Introduce el numero de expediente del alumno que quieres buscar")
+    print("Introduce el numero de expediente del alumno que quieres borrar")
     numexp = lee_entero()
     if numexp not in listaAlumnos:
         print("No se ha encontrado ningun alumno con ese numero de expediente")
     else:
+        print("Alumno dado de baja")
         AlumnoCurso.delete().where(AlumnoCurso.numExp == numexp).execute()
         Alumno.delete().where(Alumno.numeroExp == numexp).execute()
 
@@ -219,7 +220,7 @@ def bajaAlumnoCurso():
         codigo = alumno.numeroExp
         listaAlumnos.append(codigo)
     print("Expedientes:", listaAlumnos)
-    print("Introduce el numero de expediente del alumno que quieres buscar")
+    print("Introduce el numero de expediente del alumno que quieres borrar")
     numexp = lee_entero()
     if numexp not in listaAlumnos:
         print("No se ha encontrado ningun alumno con ese numero de expediente")
@@ -235,14 +236,14 @@ def modificarAlumno():
     print("Expedientes:", listaAlumnos)
     print("Introduce el numero de expediente del alumno que quieres buscar")
     numexp = lee_entero()
-    print("Quieres matricular al alumno en algun curso, o quieres modificar sus datos?\n")
-    respuesta = input(
-        "Introduce si para matricularlo. (cualquier cosa que sea distinta de si no matriculará al alumno)")
-    if respuesta == "Si" or respuesta == "si":
-        altaAlumnoCurso(numexp)
+    if numexp not in listaAlumnos:
+        print("No se ha encontrado ningun alumno con ese numero de expediente")
     else:
-        if numexp not in listaAlumnos:
-            print("No se ha encontrado ningun alumno con ese numero de expediente")
+        print("Quieres matricular al alumno en algun curso, o quieres modificar sus datos?\n")
+        respuesta = input(
+            "Introduce si para matricularlo. (cualquier cosa que sea distinta de si no matriculará al alumno)")
+        if respuesta == "Si" or respuesta == "si":
+            altaAlumnoCurso(numexp)
         else:
             alumnomod = Alumno.select().where(Alumno.numeroExp == numexp).get()
             nombre_ = input("Introduce el nombre\n")
@@ -280,7 +281,7 @@ def modificarCurso():
         listaCursos.append(codigo)
     print("Expedientes:", listaCursos)
     print("Introduce el codigo del curso que quieres modificar")
-    codcur = int(input("Introduce el numero de expediente del alumno que quieres buscar"))
+    codcur = lee_entero()
     if codcur not in listaCursos:
         print("No se ha encontrado ningun curso con ese codigo")
     else:
@@ -331,7 +332,8 @@ def buscarCurso():
         codigo = curso.codigoCurso
         listaCursos.append(codigo)
     print("Expedientes:", listaCursos)
-    codcur = int(input("Introduce el codigo del curso que quieres buscar"))
+    print("Introduce el codigo del curso que quieres buscar")
+    codcur = lee_entero()
     if codcur not in listaCursos:
         print("No se ha encontrado ningun curso con ese codigo")
     else:
