@@ -147,6 +147,7 @@ def altaCurso():
 
 def altaAlumnoCurso(exp):
     listaCursos = []
+    mat = False
     for curso in Curso.select():
         print("**************************************")
         print("--Cursos Disponibles --")
@@ -162,22 +163,21 @@ def altaAlumnoCurso(exp):
     else:
         print("Introduce el codigo del curso en el que quieres matricular al alumno")
         cod = lee_entero()
-        query = (Alumno
-                 .select(AlumnoCurso.numExp, Alumno.nombre, Alumno.apellido, Curso.nombre)
-                 .join(AlumnoCurso)
-                 .join(Curso)
-                 .where(AlumnoCurso.codCurso == cod and AlumnoCurso.numExp == exp)
-                 .tuples()
+        print("expediente", exp)
+        query = (AlumnoCurso
+                 .select(fn.COUNT(AlumnoCurso.codCurso).alias('matriculas'))
+                 .where((AlumnoCurso.codCurso == cod) & (AlumnoCurso.numExp == exp))
                  )
-        for alum in query:
-            print(alum)
-        if not query:
-            print("NO DEBERIA ENTRAR AQUI")
+        for i in query:
+            matr = i.matriculas
+            if matr > 0:
+                print("Ya estas matriculado")
+            else:
+                mat = True
+        if mat:
+            print("Matriculamos")
             matriculado = AlumnoCurso.create(numExp=exp, codCurso=cod)
             matriculado.save()
-        else:
-            print("Ya esta matriculado en ese curso")
-            # AlumnoCurso.delete().where(AlumnoCurso.numExp == exp and AlumnoCurso.codCurso == cod).execute()
 
 
 def bajaAlumno():
@@ -209,23 +209,34 @@ def bajaCurso():
     if codcur not in listaCursos:
         print("No se ha encontrado ningun alumno con ese numero de expediente")
     else:
+        print("Curso dado de baja")
         AlumnoCurso.delete().where(AlumnoCurso.codCurso == codcur).execute()
         Curso.delete().where(Curso.codigoCurso == codcur).execute()
 
 
 def bajaAlumnoCurso():
     mostrarAlumnoCurso()
-    listaAlumnos = []
-    for alumno in Alumno.select():
-        codigo = alumno.numeroExp
-        listaAlumnos.append(codigo)
-    print("Expedientes:", listaAlumnos)
-    print("Introduce el numero de expediente del alumno que quieres borrar")
-    numexp = lee_entero()
-    if numexp not in listaAlumnos:
-        print("No se ha encontrado ningun alumno con ese numero de expediente")
+    listaCursos = []
+    for curso in Curso.select():
+        codigo = curso.codigoCurso
+        listaCursos.append(codigo)
+    print("Cursos:", listaCursos)
+    print("Introduce el codigo del curso del alumno que quieres desmatricular")
+    cod = lee_entero()
+    if cod not in listaCursos:
+        print("No se ha encontrado ningun curso con ese codigo")
     else:
-        AlumnoCurso.delete().where(AlumnoCurso.numExp == numexp).execute()
+        listaExpedientes = []
+        for alumno in Alumno.select():
+            exp = alumno.numeroExp
+            listaExpedientes.append(exp)
+        print("Expedientes:", listaExpedientes)
+        print("Introduce el expediente del alumno que quieres desmatricular")
+        expe = lee_entero()
+        if expe not in listaExpedientes:
+            print("No se ha encontrado ningun alumno con ese expediente")
+        else:
+            AlumnoCurso.delete().where((AlumnoCurso.numExp == expe) & (AlumnoCurso.codCurso==cod)).execute()
 
 
 def modificarAlumno():
